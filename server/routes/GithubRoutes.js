@@ -6,8 +6,8 @@ router.use(function (req, res, next) {
     next()
 })
 router.get('/stars', GithubController.getRepoStars)
-router.get('/star/:username/:repo', GithubController.getRepoStar)
-router.delete('/star/:username/:repo', GithubController.unStart)
+router.get('/stars/:username/:repo', GithubController.getRepoStar)
+router.delete('/stars/:username/:repo', GithubController.unStart)
 router.post('/repos', GithubController.createRepo)
 router.get('/repos/:username', GithubController.getOtherRepo)
 

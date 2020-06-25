@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
-    <title>HactivGit</title>
+    <title>My git</title>
     <style>
         .box{
             height:600px;
@@ -17,22 +17,38 @@
             left: 0;
             overflow-y: scroll; 
         }
+        .hide{
+            display: none;
+        }
     </style>
   </head>
   <body>
 
     <nav class="navbar navbar-light bg-light">
-        <span class="navbar-brand mb-0 h1">HactivGit</span>
+        <span class="navbar-brand mb-0 h1">My Git</span>
+        <div class="div-inline">
+            <a href="https://github.com/login/oauth/authorize?client_id=57f03755a612f4c8dcc0" class="btn btn-outline-primary my-2 my-sm-0" id="github-login">Github login</a>
+            <a href="JavaScript:void(0);" class="btn btn-outline-danger my-2 my-sm-0 hide" id="logout">Logout</a>
+        </div>
     </nav>
-    <div class="p-2 ml-4 mr-4">
+
+    <div class="container intro">
+        <div class="jumbotron mt-3 bg-light">
+            <h1 class="display-4">What is My Git!</h1>
+            <p class="lead">My Git is a app to show your favorite repositories from github.</p>
+            <hr class="my-4">
+            <strong>let's login to show your favorite repositories!.</strong>
+          </div>
+    </div>
+
+    <div class="p-2 ml-4 mr-4 hide" id="home">
         <div class="row">
             <div class="col-3 p-1 ">
                 <div class="card border box">
                     <div class="card-body">
                         <h5 class="card-title">Users</h5>
-                        <div class="ml-3">
-                            <div><a href="">windiana</a></div>
-                            <div><a href="">rizafahmi</a></div>
+                        <div class="ml-3" id="userStar">
+                            loading....
                         </div>
                     </div>
                 </div>

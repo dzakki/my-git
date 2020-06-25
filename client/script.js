@@ -1,11 +1,44 @@
-const apiUrl = 'http://localhost:3300/api'
+const apiUrl = 'http://localhost:3000/api'
+
 $(document).ready(function () {
-    generateReposStar()
+    if (localStorage.getItem('token')) {
+        $('#github-login').hide()
+        $(".intro").hide()
+        $('#logout').show()
+        $('#home').show('slow')
+        generateReposStar()
+        generateOwnerStar()
+    }else{
+        const code = getUrlVars()
+        if (code) {
+            if (!localStorage.getItem('token')) {
+                getToken(code, (err, token) => {
+                    if (!err) {
+                        localStorage.setItem('token', token.data.access_token)
+                        $('#github-login').hide()
+                        $(".intro").hide()
+                        $('#home').show('slow')
+                        $('#logout').show()
+                        generateReposStar()
+                        generateOwnerStar()   
+                    }
+                })     
+            }
+        }
+    }
+    $('#logout').click(function (e) { 
+        e.preventDefault();
+        localStorage.clear()
+        $('#github-login').show('slow')
+        $('#home').hide('slow')
+        $('#logout').hide()
+        $(".intro").show('slow')
+    });
     $('#filterStarRepo').click(function (e) { 
         e.preventDefault();
         const elFilter =  $('#filter')
         elFilter.attr('readonly', false);
-        elFilter.attr('placeholder', 'username/repoName')
+        elFilter.attr('placeholder', 'repoName')
         elFilter.attr('data-filter', 'filterStarRepo')
         elFilter.val("")
     });
@@ -22,110 +55,78 @@ $(document).ready(function () {
         const filter = $(this).attr('data-filter')
         if (filter) {
             if (filter === 'filterStarRepo') {
-                generateFilterReposStar($(this).val())
+                const query = '?repo=' + $(this).val()
+                generateReposStar(query)
             }else{
-                console.log(filter)
-                generateFilterOtherRepos($(this).val())
+                const query = '?username=' + $(this).val()
+                generateReposStar(query)
             }   
         }
+    })
+
+    $(document).on('click', '.usernameRepo', function () {  
+        const query = '?username=' + $(this).attr('data-username')
+        generateReposStar(query)
     })
 
 });
 
-const generateFilterOtherRepos = (params) => {
-    FilterOtherRepos(params, (err, repos) => {
+const generateOwnerStar = () => {
+    ReposStar(null, (err, repos) => {
+        const owners = []
+        const elUserStar = $('#userStar')
+        elUserStar.empty()
+        repos.forEach(repo => {
+            if (!owners.includes(repo.owner.login)) {
+                owners.push(repo.owner.login)
+                const html = `<div class="hide" id="username-${repo.id}">
+                                <a class="usernameRepo" href="JavaScript:void(0);" data-username="${repo.owner.login}">
+                                    ${repo.owner.login}
+                                </a>
+                            </div>`
+                elUserStar.append(html)
+                $(`#username-${repo.id}`).show('slow')
+            }
+        });
+    })
+}
+const generateReposStar = (q = null) => {
+    ReposStar(q, (err, repos) => {
         if (!err) {
             const elReposStar = $('#reposStar')
             elReposStar.empty();
             for (let i = 0; i < repos.length; i++) {
-                RepoLanguages(repos[i].languages_url, (err, languages) => {
-                    let languagesHtml = ''
-                    for (const key in languages) {
-                        languagesHtml += `<a href="#" class="card-link">${key}</a>`
-                    }
-                    let html = `
-                    <div class="card  shadow-sm mb-2">
+                let html = `
+                    <div  class="hide" id="repo-${repos[i].id}">
+                        <div class="card shadow-sm mb-2">
                             <div class="card-body">
                                 <h5 class="card-title">
                                     <small>${repos[i].full_name}</small>
                                 </h5>
                                 <h6 class="card-subtitle mb-2 text-muted"><small>${repos[i].description}</small></h6>
-                                ${languagesHtml}
                                 <div class="mb-1"></div>
                                 <span class="float-left">${repos[i].stargazers_count} stars</span> <span class="float-right"> <a href="${repos[i].html_url}">View in github</a> </span>
                             </div>
-                        </div>
-                    `
-                    elReposStar.append(html).fadeIn('slow');
-                })
-            }   
-        }
-    })
-}
-
-const generateFilterReposStar = (params) => {
-    FilterStarRepo(params, (err, repo) => {
-        if (!err) {
-            const elReposStar = $('#reposStar')
-            elReposStar.empty()
-            RepoLanguages(repo.languages_url, (err, languages) => {
-                let languagesHtml = ''
-                for (const key in languages) {
-                    languagesHtml += `<a href="#" class="card-link">${key}</a>`
-                }
-                let html = `
-                <div class="card  shadow-sm mb-2">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <small>${repo.full_name}</small>
-                            </h5>
-                            <h6 class="card-subtitle mb-2 text-muted"><small>${repo.description}</small></h6>
-                            ${languagesHtml}
-                            <div class="mb-1"></div>
-                            <span class="float-left">${repo.stargazers_count} stars</span> <span class="float-right"> <a href="${repo.html_url}">View in github</a> </span>
                         </div>
                     </div>
-                `
-                elReposStar.append(html).fadeIn('slow');
-            })
-        }
-    })
-}
-
-const generateReposStar = () => {
-    ReposStar((err, repos) => {
-        if (!err) {
-            const elReposStar = $('#reposStar')
-            elReposStar.empty();
-            for (let i = 0; i < repos.length; i++) {
-                RepoLanguages(repos[i].languages_url, (err, languages) => {
-                    let languagesHtml = ''
-                    for (const key in languages) {
-                        languagesHtml += `<a href="#" class="card-link">${key}</a>`
-                    }
-                    let html = `
-                    <div class="card  shadow-sm mb-2">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <small>${repos[i].full_name}</small>
-                                </h5>
-                                <h6 class="card-subtitle mb-2 text-muted"><small>${repos[i].description}</small></h6>
-                                ${languagesHtml}
-                                <div class="mb-1"></div>
-                                <span class="float-left">${repos[i].stargazers_count} stars</span> <span class="float-right"> <a href="${repos[i].html_url}">View in github</a> </span>
-                            </div>
-                        </div>
                     `
-                    elReposStar.append(html).fadeIn('slow');
-                })
+                    elReposStar.append(html);
+                    $(`#repo-${repos[i].id}`).show('slow');
             }   
         }
     })
 }
-const ReposStar = (cb) => {
+const ReposStar = (q ,cb) => {
+    let query = q || ""
+    
+    console.log(apiUrl + '/github/stars'+query)
+
     $.ajax({
-        type: "GET",
-        url: apiUrl + '/github/stars'
+        url: apiUrl + '/github/stars'+query,
+        method: "GET",
+        headers: {
+            token: localStorage.getItem('token')
+        }
     })
     .done(res => {
         cb(null, res.data)
@@ -137,7 +138,7 @@ const ReposStar = (cb) => {
 const RepoLanguages = (url, cb) => {
     $.ajax({
         type: "GET",
-        url: url
+        url: apiUrl + '/github/'+url+'/languages'
     })
     .done(res => {
         cb(null, res)
@@ -146,28 +147,28 @@ const RepoLanguages = (url, cb) => {
         cb(errs)
     })
 }
-const FilterStarRepo = (params, cb) => {
+
+const getToken = function (code, cb) {  
     $.ajax({
-        type: "GET",
-        url: apiUrl + '/github/stars/'+params
+        type: "POST",
+        url: apiUrl+"/auth/gihub-signin/"+code
     })
     .done(res => {
-        cb(null, res.data)
+        cb(null,res)
     })
     .fail(errs => {
         cb(errs)
     })
 }
 
-const FilterOtherRepos = (params, cb) => {
-    $.ajax({
-        type: "GET",
-        url: apiUrl + '/github/repos/'+params
-    })
-    .done(res => {
-        cb(null, res.data)
-    })
-    .fail(errs => {
-        cb(errs)
-    })
+function getUrlVars(){
+    let vars = [], hash;
+    let hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(let i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars['code'];
 }

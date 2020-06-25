@@ -1,4 +1,4 @@
-const apiUrl = 'http://localhost:3000/api'
+const apiUrl = 'https://dz-my-git.herokuapp.com/api'
 
 $(document).ready(function () {
     if (localStorage.getItem('token')) {

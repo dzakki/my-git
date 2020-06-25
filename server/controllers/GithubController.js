@@ -2,15 +2,40 @@ const axios = require('axios')
 class GithubController{
 
     static getRepoStars(req, res, next){
+
+        console.log(req.githubToken, '============')
         axios.get(`${req.githubUrl}/user/starred`, {
             headers: {
                 Authorization: `token ${req.githubToken}`
             }
         })
         .then(({ data }) => {
-            res.status(200).json({
-                data
-            })
+            if (req.query.repo) {
+                const repos = []
+                data.forEach(repo => {
+                    if (repo.name.includes(req.query.repo)) {
+                        repos.push(repo)
+                    }
+                });
+                res.status(200).json({
+                    data: repos
+                })
+            }else if (req.query.username) {
+                const repos = []
+                data.forEach(repo => {
+                    if (repo.owner.login.includes(req.query.username)) {
+                        repos.push(repo)
+                    }
+                });
+                res.status(200).json({
+                    data: repos
+                })
+            }
+            else{
+                res.status(200).json({
+                    data
+                })
+            }
         })
         .catch(next)
     }
@@ -27,7 +52,7 @@ class GithubController{
                 // https://api.github.com/repos/rizafahmi/ceritanya-developer
                 return axios.get(`${req.githubUrl}/repos/${req.params.username}/${req.params.repo}`, {
                     headers: {
-                        Authorization: `token ${req.githubToken}`
+                        Authorization: `token ${req.token}`
                     }
                 })
             }
@@ -75,7 +100,7 @@ class GithubController{
         .catch(next)
     }
 
-    static unStart(req, res, next){
+    static unStar(req, res, next){
         // /user/starred/:owner/:repo
         return axios.delete(`${req.githubUrl}/user/starred/${req.params.username}/${req.params.repo}`, {
             headers: {
@@ -90,6 +115,19 @@ class GithubController{
         .catch(next)
     }
     
+    static getRepoLanguages(req, res, next){
+        axios.get(`${req.githubUrl}/${req.params.username}/${req.params.repo}/languages`, {
+            headers: {
+                Authorization: `token ${req.githubToken}`
+            }
+        })
+        .then( ({data}) => {
+            res.status(200).json({
+                data
+            })
+        })
+        .catch(next)
+    }
 }
 
 module.exports = GithubController
